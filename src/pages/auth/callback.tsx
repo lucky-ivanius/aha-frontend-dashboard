@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/auth-context";
 
 export default function AuthCallback() {
-  const { signInWithToken, sessionId } = useAuth();
+  const { signInWithToken, getSessionId } = useAuth();
   const { getToken, isSignedIn, isLoaded } = useClerkAuth();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
@@ -12,10 +12,9 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      if (sessionId) navigate("/dashboard", { replace: true });
+      if (getSessionId()) navigate("/dashboard", { replace: true });
 
-      // Prevent multiple sign-in attempts
-      if (!isLoaded || isProcessingRef.current) return;
+      if (!isLoaded) return;
 
       try {
         // If user is signed in with Clerk
@@ -40,13 +39,12 @@ export default function AuthCallback() {
       } catch (err) {
         console.error("Error in auth callback:", err);
         setError("Authentication failed. Please try signing in again.");
-        // Reset the processing flag if there's an error
-        isProcessingRef.current = false;
+        navigate("/auth/sign-in", { replace: true });
       }
     };
 
     handleCallback();
-  }, [sessionId, isSignedIn, isLoaded, getToken, signInWithToken, navigate]);
+  }, [getSessionId, isSignedIn, isLoaded, getToken, signInWithToken, navigate]);
 
   // Show loading state
   return (

@@ -8,13 +8,12 @@ import {
   useEffect,
   useState,
 } from "react";
-import { useCookies } from "react-cookie";
 
 interface AuthContextType {
   loading: boolean;
   user: User | null;
   isAuthenticated: boolean;
-  sessionId: string | null;
+  getSessionId: () => string | null;
   signOut: () => Promise<void>;
   updateUser: (data: { name: string }) => Promise<void>;
   signInWithToken: (token: string) => Promise<void>;
@@ -22,16 +21,13 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const sessionName = "aha_sid";
+const sessionName = "sid";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn } = useClerkAuth();
   const { signOut: clerkSignOut } = useClerk();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [cookies] = useCookies<typeof sessionName, { sid: string | null }>([
-    sessionName,
-  ]);
 
   // Function to sign in with a token from Clerk
   const signInWithToken = async (token: string) => {
@@ -48,6 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         if (isSignedIn) await clerkSignOut();
       }
+
+      sessionStorage.setItem(sessionName, authResponse.data.sessionToken);
 
       const userResponse = await apiClient.getCurrentUser();
 
@@ -69,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         if (!isLoaded) return;
 
-        if (!cookies.sid) return;
+        if (!getSessionId()) return;
 
         const response = await apiClient.getCurrentUser();
         setUser(response.data);
@@ -82,10 +80,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     checkAuth();
-  }, [isLoaded, cookies.sid]);
+  }, [isLoaded]);
+
+  const getSessionId = () => {
+    return sessionStorage.getItem(sessionName);
+  };
 
   const signOut = async () => {
     try {
+      sessionStorage.removeItem(sessionName);
       await apiClient.signOut();
       if (isSignedIn) await clerkSignOut();
       setUser(null);
@@ -112,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         user,
         isAuthenticated: !!user,
-        sessionId: cookies.sid,
+        getSessionId,
         signOut,
         updateUser,
         signInWithToken,

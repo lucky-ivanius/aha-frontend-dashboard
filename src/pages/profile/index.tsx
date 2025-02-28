@@ -8,13 +8,15 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function ProfilePage() {
-  const { user, sessionId } = useAuth();
+  const { user, getSessionId } = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [passwordStatus, setPasswordStatus] = useState<PasswordStatus | null>(
     null,
   );
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  console.log({ sessionId: getSessionId() });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -100,8 +102,12 @@ export default function ProfilePage() {
     return result;
   };
 
-  const currentSession = sessions.find((session) => session.id === sessionId);
-  const otherSessions = sessions.filter((session) => session.id !== sessionId);
+  const currentSession = sessions.find(
+    (session) => session.id === getSessionId(),
+  );
+  const otherSessions = sessions.filter(
+    (session) => session.id !== getSessionId(),
+  );
 
   if (loading) {
     return (
