@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_API_URL, // Use manually loaded env
           changeOrigin: true,
           secure: false,
+          xfwd: true,
         },
       },
     },
