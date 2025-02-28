@@ -1,9 +1,9 @@
-import { SignIn } from "@clerk/clerk-react";
 import { AuthPageLayout } from "@/layouts/auth-page-layout";
+import { SignIn } from "@clerk/clerk-react";
 
 export default function SignInPage() {
   return (
-    <AuthPageLayout title="Aha!" message="Sign in to access your dashboard">
+    <AuthPageLayout title="Aha!">
       <SignIn
         forceRedirectUrl="/auth/callback"
         signUpForceRedirectUrl="/auth/callback"
