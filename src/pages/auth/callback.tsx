@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/auth-context";
 
 export default function AuthCallback() {
-  const { signInWithToken, getSessionId } = useAuth();
+  const { signInWithToken, sessionId } = useAuth();
   const { getToken, isSignedIn, isLoaded } = useClerkAuth();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
@@ -12,8 +12,7 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const sid = getSessionId();
-      if (sid) navigate("/dashboard", { replace: true });
+      if (sessionId) navigate("/dashboard", { replace: true });
 
       // Prevent multiple sign-in attempts
       if (!isLoaded || isProcessingRef.current) return;
@@ -47,7 +46,7 @@ export default function AuthCallback() {
     };
 
     handleCallback();
-  }, [getSessionId, isSignedIn, isLoaded, getToken, signInWithToken, navigate]);
+  }, [sessionId, isSignedIn, isLoaded, getToken, signInWithToken, navigate]);
 
   // Show loading state
   return (

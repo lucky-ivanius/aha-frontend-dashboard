@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function ProfilePage() {
-  const { user, getSessionId } = useAuth();
+  const { user, sessionId } = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [passwordStatus, setPasswordStatus] = useState<PasswordStatus | null>(
     null,
@@ -100,12 +100,8 @@ export default function ProfilePage() {
     return result;
   };
 
-  const currentSession = sessions.find(
-    (session) => session.id === getSessionId(),
-  );
-  const otherSessions = sessions.filter(
-    (session) => session.id !== getSessionId(),
-  );
+  const currentSession = sessions.find((session) => session.id === sessionId);
+  const otherSessions = sessions.filter((session) => session.id !== sessionId);
 
   if (loading) {
     return (
