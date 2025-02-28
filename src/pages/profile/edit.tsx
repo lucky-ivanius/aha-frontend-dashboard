@@ -17,7 +17,10 @@ import {
 } from "@/components/ui/form";
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters." })
+    .max(64, { message: "Name must be at most 64 characters." }),
   email: z.string().email().optional(),
 });
 
@@ -76,7 +79,11 @@ export default function EditProfilePage() {
                   <FormItem>
                     <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Your name" />
+                      <Input
+                        {...field}
+                        placeholder="Your name"
+                        maxLength={64}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

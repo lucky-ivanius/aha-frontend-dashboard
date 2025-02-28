@@ -1,12 +1,6 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { apiClient } from "@/api/client";
-import { DashboardLayout } from "@/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
   FormControl,
@@ -15,21 +9,40 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/input";
+import { DashboardLayout } from "@/layouts/dashboard-layout";
 import { PasswordStatus } from "@/types/user";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import { z } from "zod";
 
 const passwordRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\\[\]{};':"\\|,.<>\\/?]).{8,}$/;
-const passwordRequirements =
-  "Password must be at least 8 characters and include at least one lowercase letter, one uppercase letter, one number, and one special character.";
+const passwordRequirements = (name: string) =>
+  `${name} must be at least 8 characters and include at least one lowercase letter, one uppercase letter, one number, and one special character.`;
+
+const password = (name: string) =>
+  z
+    .string({
+      required_error: `${name} is required`,
+      invalid_type_error: `${name} must be a string`,
+    })
+    .min(8, {
+      message: `${name} must be at least 8 characters`,
+    })
+    .max(64, {
+      message: `${name} must be at most 64 characters`,
+    })
+    .regex(passwordRegex, {
+      message: passwordRequirements(name),
+    });
 
 // Schema for setting new password (no current password required)
 const setPasswordSchema = z
   .object({
-    newPassword: z
-      .string()
-      .min(8, { message: "Password must be at least 8 characters." })
-      .regex(passwordRegex, { message: passwordRequirements }),
+    newPassword: password("Password"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
@@ -43,10 +56,7 @@ const changePasswordSchema = z
     currentPassword: z
       .string()
       .min(1, { message: "Current password is required." }),
-    newPassword: z
-      .string()
-      .min(8, { message: "Password must be at least 8 characters." })
-      .regex(passwordRegex, { message: passwordRequirements }),
+    newPassword: password("Password"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
@@ -127,7 +137,7 @@ export default function PasswordPage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex h-64 items-center justify-center">
+        <div className="flex h-100 items-center justify-center">
           <p className="text-lg">Loading...</p>
         </div>
       </DashboardLayout>
@@ -177,10 +187,10 @@ export default function PasswordPage() {
                   control={changePasswordForm.control}
                   name="currentPassword"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="w-full lg:w-1/2 xl:w-1/3">
                       <FormLabel>Current Password</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} />
+                        <PasswordInput {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -191,15 +201,12 @@ export default function PasswordPage() {
                   control={changePasswordForm.control}
                   name="newPassword"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="w-full lg:w-1/2 xl:w-1/3">
                       <FormLabel>New Password</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} />
+                        <PasswordInput {...field} maxLength={64} />
                       </FormControl>
                       <FormMessage />
-                      <p className="text-xs text-gray-500">
-                        {passwordRequirements}
-                      </p>
                     </FormItem>
                   )}
                 />
@@ -208,19 +215,20 @@ export default function PasswordPage() {
                   control={changePasswordForm.control}
                   name="confirmPassword"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="w-full lg:w-1/2 xl:w-1/3">
                       <FormLabel>Confirm New Password</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} />
+                        <PasswordInput {...field} maxLength={64} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <div className="flex justify-end">
+                <div className="flex justify-end lg:justify-start">
                   <Button
                     type="submit"
+                    className="w-full sm:w-auto"
                     disabled={changePasswordForm.formState.isSubmitting}
                   >
                     {changePasswordForm.formState.isSubmitting
@@ -247,15 +255,12 @@ export default function PasswordPage() {
                   control={setPasswordForm.control}
                   name="newPassword"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="w-full lg:w-1/2 xl:w-1/3">
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} />
+                        <PasswordInput {...field} maxLength={64} />
                       </FormControl>
                       <FormMessage />
-                      <p className="text-xs text-gray-500">
-                        {passwordRequirements}
-                      </p>
                     </FormItem>
                   )}
                 />
@@ -264,19 +269,20 @@ export default function PasswordPage() {
                   control={setPasswordForm.control}
                   name="confirmPassword"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="w-full lg:w-1/2 xl:w-1/3">
                       <FormLabel>Confirm Password</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} />
+                        <PasswordInput {...field} maxLength={64} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <div className="flex justify-end">
+                <div className="flex justify-end lg:justify-start">
                   <Button
                     type="submit"
+                    className="w-full sm:w-auto"
                     disabled={setPasswordForm.formState.isSubmitting}
                   >
                     {setPasswordForm.formState.isSubmitting
