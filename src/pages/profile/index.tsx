@@ -16,8 +16,6 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  console.log({ sessionId: getSessionId() });
-
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);

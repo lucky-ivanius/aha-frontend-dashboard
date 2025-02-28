@@ -35,21 +35,25 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               Dashboard
             </Link>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <Button
               variant="transparent"
               onClick={() => navigate("/profile")}
-              className="flex items-center space-x-2 py-1"
+              className="flex items-center space-x-1 sm:space-x-2 py-1 px-2"
             >
-              <Avatar className="h-8 w-8">
+              <Avatar className="h-10 w-10 sm:h-8 sm:w-8">
                 <AvatarImage src="" alt={user?.name || "User"} />
-                <AvatarFallback>
+                <AvatarFallback className="text-xs sm:text-sm">
                   {user?.name ? getInitials(user.name) : "U"}
                 </AvatarFallback>
               </Avatar>
               <span className="hidden sm:block">{user?.name}</span>
             </Button>
-            <Button variant="outline" onClick={handleSignOut}>
+            <Button
+              variant="outline"
+              onClick={handleSignOut}
+              className="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+            >
               Sign out
             </Button>
           </div>
