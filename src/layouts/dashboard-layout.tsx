@@ -47,7 +47,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   {user?.name ? getInitials(user.name) : "U"}
                 </AvatarFallback>
               </Avatar>
-              <span>{user?.name}</span>
+              <span className="hidden sm:block">{user?.name}</span>
             </Button>
             <Button variant="outline" onClick={handleSignOut}>
               Sign out
