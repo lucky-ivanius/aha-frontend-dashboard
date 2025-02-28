@@ -1,13 +1,13 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
-import { useClerk, useAuth as useClerkAuth } from "@clerk/clerk-react";
 import { apiClient } from "@/api/client";
 import { User } from "@/types/user";
+import { useClerk, useAuth as useClerkAuth } from "@clerk/clerk-react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 interface AuthContextType {
   loading: boolean;
@@ -22,7 +22,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { isLoaded } = useClerkAuth();
+  const { isLoaded, isSignedIn } = useClerkAuth();
   const { signOut: clerkSignOut } = useClerk();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,10 +31,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithToken = async (token: string) => {
     setLoading(true);
     try {
+      if (!isSignedIn) {
+        setLoading(false);
+        return;
+      }
+
       const authResponse = await apiClient.signIn(token);
 
-      if (!authResponse.ok) {
-        throw new Error("Failed to sign in with token");
+      if (!authResponse.ok || authResponse.status === 401) {
+        setUser(null);
+        if (isSignedIn) await clerkSignOut();
       }
 
       sessionStorage.setItem("sid", authResponse.data.sessionToken);
@@ -54,10 +60,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Check if the user is already authenticated on mount
   useEffect(() => {
     const checkAuth = async () => {
-      if (!isLoaded) return;
-
       setLoading(true);
+
       try {
+        if (!isLoaded) return;
+
+        if (!getSessionId()) return;
+
         const response = await apiClient.getCurrentUser();
         setUser(response.data);
       } catch (error) {
@@ -72,14 +81,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [isLoaded]);
 
   const getSessionId = () => {
-    return sessionStorage.getItem("sid") || null;
+    return sessionStorage.getItem("sid");
   };
 
   const signOut = async () => {
     try {
       sessionStorage.removeItem("sid");
       await apiClient.signOut();
-      await clerkSignOut();
+      if (isSignedIn) await clerkSignOut();
       setUser(null);
     } catch (error) {
       console.error("signOut failed:", error);
