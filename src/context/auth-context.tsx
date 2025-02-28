@@ -43,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!authResponse.ok || authResponse.status === 401) {
         setUser(null);
         if (isSignedIn) await clerkSignOut();
+        return;
       }
 
       sessionStorage.setItem(sessionName, authResponse.data.sessionToken);
@@ -53,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Failed to sign in with token:", error);
       setUser(null);
-      throw error;
+      if (isSignedIn) await clerkSignOut();
     } finally {
       setLoading(false);
     }
@@ -74,13 +75,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error(error);
         setUser(null);
+        sessionStorage.removeItem(sessionName);
+        if (isSignedIn) await clerkSignOut();
       } finally {
         setLoading(false);
       }
     };
 
     checkAuth();
-  }, [isLoaded]);
+  }, [isLoaded, isSignedIn, clerkSignOut]);
 
   const getSessionId = () => {
     return sessionStorage.getItem(sessionName);
