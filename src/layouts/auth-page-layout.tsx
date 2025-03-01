@@ -17,7 +17,9 @@ export function AuthPageLayout({
         <h1 className="text-3xl font-bold">{title}</h1>
         {message && <p className="mt-2 text-gray-600">{message}</p>}
       </div>
-      <div className="flex justify-center w-full max-w-md">{children}</div>
+      <div className="flex flex-col justify-center items-center w-full max-w-md gap-y-4">
+        {children}
+      </div>
     </div>
   );
 }

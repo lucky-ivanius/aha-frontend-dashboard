@@ -9,6 +9,8 @@ import {
 import { AuthProvider } from "@/context/auth-context";
 import { ProtectedRoute, PublicRoute } from "@/layouts/auth-layout";
 
+import "./clerk.css";
+
 // Pages
 import AuthCallback from "@/pages/auth/callback";
 import SignInPage from "@/pages/auth/sign-in";
@@ -28,7 +30,14 @@ if (!clerkPubKey) {
 
 function App() {
   return (
-    <ClerkProvider publishableKey={clerkPubKey}>
+    <ClerkProvider
+      publishableKey={clerkPubKey}
+      appearance={{
+        variables: {
+          colorPrimary: "hsl(240, 5.9%, 10%)",
+        },
+      }}
+    >
       <AuthProvider>
         <Router>
           <Routes>
