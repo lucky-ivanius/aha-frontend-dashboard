@@ -15,6 +15,7 @@ export default function ProfilePage() {
     null,
   );
   const [loading, setLoading] = useState(true);
+  const [revokeLoading, setRevokeLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,10 +39,12 @@ export default function ProfilePage() {
   }, [signOut]);
 
   const handleRevokeSession = async (sessionId: string) => {
+    setRevokeLoading(true);
     const revokeResponse = await apiClient.revokeSession(sessionId);
     if (revokeResponse.status === 401) return signOut();
 
     setSessions(sessions.filter((session) => session.id !== sessionId));
+    setRevokeLoading(false);
   };
 
   const formatDateTime = (dateString: number) => {
@@ -247,6 +250,7 @@ export default function ProfilePage() {
                           <Button
                             variant="destructive"
                             size="sm"
+                            disabled={revokeLoading}
                             onClick={() => handleRevokeSession(session.id)}
                           >
                             Revoke
