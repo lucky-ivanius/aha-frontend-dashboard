@@ -1,50 +1,35 @@
-import { useEffect, useState, useRef } from "react";
-import { useAuth as useClerkAuth } from "@clerk/clerk-react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/auth-context";
+import { useAuth as useClerkAuth } from "@clerk/clerk-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function AuthCallback() {
-  const { signInWithToken, getSessionId } = useAuth();
-  const { getToken, isSignedIn, isLoaded } = useClerkAuth();
+  const { getSessionId, signInWithToken } = useAuth();
+  const { getToken, signOut: clerkSignOut, isSignedIn } = useClerkAuth();
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
-  const isProcessingRef = useRef(false);
+  const [error] = useState<string | null>(null);
 
   useEffect(() => {
     const handleCallback = async () => {
-      if (getSessionId()) navigate("/dashboard", { replace: true });
+      if (getSessionId()) return navigate("/dashboard", { replace: true });
 
-      if (!isLoaded) return;
+      if (isSignedIn) {
+        const token = await getToken();
+        if (!token) return clerkSignOut({ redirectUrl: "/auth/sign-in" });
 
-      try {
-        // If user is signed in with Clerk
-        if (isSignedIn) {
-          // Set flag to prevent duplicate processing
-          isProcessingRef.current = true;
-
-          // Get token from Clerk
-          const token = await getToken();
-          if (!token) {
-            throw new Error("Failed to get token from Clerk");
-          }
-
-          // Sign in with our backend
-          await signInWithToken(token);
-
-          // Redirect to dashboard
-          navigate("/dashboard", { replace: true });
-        } else {
-          navigate("/auth/sign-in", { replace: true });
-        }
-      } catch (err) {
-        console.error("Error in auth callback:", err);
-        setError("Authentication failed. Please try signing in again.");
-        navigate("/auth/sign-in", { replace: true });
+        await signInWithToken(token);
       }
     };
 
     handleCallback();
-  }, [getSessionId, isSignedIn, isLoaded, getToken, signInWithToken, navigate]);
+  }, [
+    clerkSignOut,
+    getSessionId,
+    getToken,
+    isSignedIn,
+    navigate,
+    signInWithToken,
+  ]);
 
   // Show loading state
   return (

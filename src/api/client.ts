@@ -44,14 +44,6 @@ export class ApiClient {
 
       const data = await response.json().catch(() => ({}));
 
-      if (!response.ok) {
-        throw {
-          status: response.status,
-          data,
-          message: data.message || "API request failed",
-        };
-      }
-
       return { data, status: response.status, ok: response.ok };
     } catch (error) {
       console.error("API request error:", error);

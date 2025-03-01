@@ -1,5 +1,5 @@
-import { SignUp } from "@clerk/clerk-react";
 import { AuthPageLayout } from "@/layouts/auth-page-layout";
+import { SignUp } from "@clerk/clerk-react";
 
 export default function SignUpPage() {
   return (

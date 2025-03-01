@@ -1,6 +1,4 @@
-import { useAuth } from "@/context/auth-context";
-import { ReactNode, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { ReactNode } from "react";
 
 interface AuthPageLayoutProps {
   children: ReactNode;
@@ -13,16 +11,6 @@ export function AuthPageLayout({
   title,
   message,
 }: AuthPageLayoutProps) {
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-
-  // Redirect if already authenticated with our backend
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/dashboard", { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
-
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-gray-100">
       <div className="mb-8 text-center">

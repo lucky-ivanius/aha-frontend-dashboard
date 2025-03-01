@@ -12,10 +12,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth/sign-in");
-  };
+  const handleSignOut = async () => signOut();
 
   const getInitials = (name: string) => {
     return name
