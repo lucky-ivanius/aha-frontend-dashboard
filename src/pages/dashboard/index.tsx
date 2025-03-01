@@ -13,9 +13,14 @@ import { useAuth } from "@/context/auth-context";
 import { DashboardLayout } from "@/layouts/dashboard-layout";
 import { UserList, UserStats } from "@/types/user";
 import { useEffect, useState } from "react";
+import { formatInTimeZone } from "date-fns-tz";
 
 export default function Dashboard() {
   const { signOut } = useAuth();
+  const [serverTime, setServerTime] = useState<{
+    timestamp: number;
+    timezone: string;
+  } | null>(null);
   const [users, setUsers] = useState<UserList[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -39,6 +44,10 @@ export default function Dashboard() {
     const fetchData = async () => {
       setLoading(true);
       try {
+        // Fetch server time
+        const serverTimeResponse = await apiClient.getServerTime();
+        setServerTime(serverTimeResponse.data);
+
         // Fetch stats once
         const statsResponse = await apiClient.getUserStats();
         if (statsResponse.status === 401) return signOut();
@@ -58,6 +67,23 @@ export default function Dashboard() {
   useEffect(() => {
     fetchUsers(currentPage);
   }, [currentPage, pageSize]);
+
+  useEffect(() => {
+    const serverTimeUpdate = setInterval(() => {
+      setServerTime((prev) => {
+        if (!prev) return null;
+
+        return {
+          ...prev,
+          timestamp: prev.timestamp + 1000,
+        };
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(serverTimeUpdate);
+    };
+  }, []);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -85,6 +111,19 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
+      <div className="flex mb-4">
+        <p className="text-sm text-foreground/80">
+          Server time:{" "}
+          {serverTime?.timestamp
+            ? formatInTimeZone(
+                new Date(serverTime.timestamp),
+                serverTime.timezone,
+                "PPpp",
+              )
+            : ""}{" "}
+          ({serverTime?.timezone})
+        </p>
+      </div>
       {/* Stats Cards */}
       <div className="mb-8 grid gap-4 md:grid-cols-3">
         <Card>
@@ -128,7 +167,7 @@ export default function Dashboard() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Registration Date</TableHead>
-              <TableHead>Total Logins</TableHead>
+              <TableHead className="text-right">Total Logins</TableHead>
               <TableHead>Last Active</TableHead>
             </TableRow>
           </TableHeader>
@@ -148,9 +187,11 @@ export default function Dashboard() {
             ) : (
               users.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
+                  <TableCell className="font-bold">{user.name}</TableCell>
                   <TableCell>{formatDate(user.registrationDate)}</TableCell>
-                  <TableCell>{user.totalLoginCount}</TableCell>
+                  <TableCell className="text-right">
+                    {user.totalLoginCount}
+                  </TableCell>
                   <TableCell>
                     {user.lastActiveTimestamp
                       ? formatDate(user.lastActiveTimestamp)

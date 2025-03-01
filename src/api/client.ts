@@ -51,6 +51,13 @@ export class ApiClient {
     }
   }
 
+  // SERVER ENDPOINTS
+  async getServerTime(): Promise<
+    ApiResponse<{ timestamp: number; timezone: string }>
+  > {
+    return this.request<{ timestamp: number; timezone: string }>("/time");
+  }
+
   // AUTH ENDPOINTS
 
   async signIn(
