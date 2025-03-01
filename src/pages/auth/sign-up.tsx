@@ -8,7 +8,7 @@ export default function SignUpPage() {
 
   return (
     <AuthPageLayout
-      title={isLoaded ? "Create your account" : "Aha!"}
+      title="Aha!"
       message={isLoaded ? "Sign up to get started with your dashboard" : ""}
     >
       <SignUp
