@@ -92,7 +92,10 @@ export class ApiClient {
     });
   }
 
-  async getAllUsers(page = 1, limit = 10): Promise<
+  async getAllUsers(
+    page = 1,
+    limit = 10,
+  ): Promise<
     ApiResponse<{
       data: Array<{
         id: string;
@@ -171,6 +174,7 @@ export class ApiClient {
         expiresAt: number;
         ipAddress: string;
         userAgent: string;
+        isCurrentSession: boolean;
       }>
     >
   > {
@@ -183,6 +187,7 @@ export class ApiClient {
         expiresAt: number;
         ipAddress: string;
         userAgent: string;
+        isCurrentSession: boolean;
       }>
     >("/sessions");
   }

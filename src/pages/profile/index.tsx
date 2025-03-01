@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow, isAfter, subDays, format } from "date-fns";
 
 export default function ProfilePage() {
-  const { user, getSessionId, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [passwordStatus, setPasswordStatus] = useState<PasswordStatus | null>(
     null,
@@ -99,12 +99,8 @@ export default function ProfilePage() {
     return result;
   };
 
-  const currentSession = sessions.find(
-    (session) => session.id === getSessionId(),
-  );
-  const otherSessions = sessions.filter(
-    (session) => session.id !== getSessionId(),
-  );
+  const currentSession = sessions.find((session) => session.isCurrentSession);
+  const otherSessions = sessions.filter((session) => !session.isCurrentSession);
 
   if (loading) {
     return (

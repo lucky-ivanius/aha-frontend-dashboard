@@ -36,4 +36,5 @@ export interface Session {
   expiresAt: number;
   ipAddress: string;
   userAgent: string;
+  isCurrentSession: boolean;
 }
