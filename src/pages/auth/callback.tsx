@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function AuthCallback() {
   const { getSessionId, signInWithToken } = useAuth();
-  const { getToken, signOut: clerkSignOut, isSignedIn } = useClerkAuth();
+  const { getToken, isLoaded } = useClerkAuth();
   const navigate = useNavigate();
   const [error] = useState<string | null>(null);
 
@@ -13,23 +13,16 @@ export default function AuthCallback() {
     const handleCallback = async () => {
       if (getSessionId()) return navigate("/dashboard", { replace: true });
 
-      if (isSignedIn) {
+      if (isLoaded) {
         const token = await getToken();
-        if (!token) return clerkSignOut({ redirectUrl: "/auth/sign-in" });
+        if (!token) return navigate("/auth/sign-in", { replace: true });
 
         await signInWithToken(token);
       }
     };
 
     handleCallback();
-  }, [
-    clerkSignOut,
-    getSessionId,
-    getToken,
-    isSignedIn,
-    navigate,
-    signInWithToken,
-  ]);
+  }, [getSessionId, getToken, isLoaded, navigate, signInWithToken]);
 
   // Show loading state
   return (

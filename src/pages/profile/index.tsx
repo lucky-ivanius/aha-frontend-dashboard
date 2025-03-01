@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function ProfilePage() {
-  const { user, getSessionId } = useAuth();
+  const { user, getSessionId, signOut } = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [passwordStatus, setPasswordStatus] = useState<PasswordStatus | null>(
     null,
@@ -19,31 +19,28 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      try {
-        const [sessionsResponse, passwordStatusResponse] = await Promise.all([
-          apiClient.getUserSessions(),
-          apiClient.getPasswordStatus(),
-        ]);
 
-        setSessions(sessionsResponse.data);
-        setPasswordStatus(passwordStatusResponse.data);
-      } catch (error) {
-        console.error("Failed to fetch profile data:", error);
-      } finally {
-        setLoading(false);
-      }
+      const [sessionsResponse, passwordStatusResponse] = await Promise.all([
+        apiClient.getUserSessions(),
+        apiClient.getPasswordStatus(),
+      ]);
+
+      if (sessionsResponse.status === 401) return signOut();
+      if (passwordStatusResponse.status === 401) return signOut();
+
+      setSessions(sessionsResponse.data);
+      setPasswordStatus(passwordStatusResponse.data);
+      setLoading(false);
     };
 
     fetchData();
-  }, []);
+  }, [signOut]);
 
   const handleRevokeSession = async (sessionId: string) => {
-    try {
-      await apiClient.revokeSession(sessionId);
-      setSessions(sessions.filter((session) => session.id !== sessionId));
-    } catch (error) {
-      console.error("Failed to revoke session:", error);
-    }
+    const revokeResponse = await apiClient.revokeSession(sessionId);
+    if (revokeResponse.status === 401) return signOut();
+
+    setSessions(sessions.filter((session) => session.id !== sessionId));
   };
 
   const formatDateTime = (dateString: number) => {
@@ -174,7 +171,7 @@ export default function ProfilePage() {
           {currentSession && (
             <div className="mb-6">
               <h3 className="mb-2 font-semibold">Current Session</h3>
-              <Card className="border-green-200 bg-green-50 md:w-2/3 lg:w-1/2 w-full">
+              <Card className="border-green-200 bg-green-50">
                 <CardContent className="pt-6">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">

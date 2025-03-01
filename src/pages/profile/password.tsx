@@ -10,6 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/input";
+import { useAuth } from "@/context/auth-context";
 import { DashboardLayout } from "@/layouts/dashboard-layout";
 import { PasswordStatus } from "@/types/user";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -68,6 +69,7 @@ type SetPasswordValues = z.infer<typeof setPasswordSchema>;
 type ChangePasswordValues = z.infer<typeof changePasswordSchema>;
 
 export default function PasswordPage() {
+  const { signOut } = useAuth();
   const navigate = useNavigate();
   const [passwordStatus, setPasswordStatus] = useState<PasswordStatus | null>(
     null,
@@ -76,18 +78,16 @@ export default function PasswordPage() {
 
   useEffect(() => {
     const fetchPasswordStatus = async () => {
-      try {
-        const { data } = await apiClient.getPasswordStatus();
-        setPasswordStatus(data);
-      } catch (error) {
-        console.error("Failed to fetch password status:", error);
-      } finally {
-        setLoading(false);
-      }
+      const passwordStatusResponse = await apiClient.getPasswordStatus();
+
+      if (passwordStatusResponse.status === 401) return signOut();
+
+      setPasswordStatus(passwordStatusResponse.data);
+      setLoading(false);
     };
 
     fetchPasswordStatus();
-  }, []);
+  }, [signOut]);
 
   const setPasswordForm = useForm<SetPasswordValues>({
     resolver: zodResolver(setPasswordSchema),
@@ -107,31 +107,20 @@ export default function PasswordPage() {
   });
 
   const handleSetPassword = async (values: SetPasswordValues) => {
-    try {
-      await apiClient.setPassword(values.newPassword);
-      navigate("/profile");
-    } catch (error) {
-      console.error("Failed to set password:", error);
-      setPasswordForm.setError("root", {
-        message: "Failed to set password. Please try again.",
-      });
-    }
+    const setPasswordResponse = await apiClient.setPassword(values.newPassword);
+    if (setPasswordResponse.status === 401) return signOut();
+
+    navigate("/profile");
   };
 
   const handleChangePassword = async (values: ChangePasswordValues) => {
-    try {
-      await apiClient.changePassword(
-        values.currentPassword,
-        values.newPassword,
-      );
-      navigate("/profile");
-    } catch (error) {
-      console.error("Failed to change password:", error);
-      changePasswordForm.setError("root", {
-        message:
-          "Failed to change password. Current password may be incorrect.",
-      });
-    }
+    const changePasswordResponse = await apiClient.changePassword(
+      values.currentPassword,
+      values.newPassword,
+    );
+    if (changePasswordResponse.status === 401) return signOut();
+
+    navigate("/profile");
   };
 
   if (loading) {

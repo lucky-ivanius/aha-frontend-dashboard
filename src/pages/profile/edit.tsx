@@ -39,15 +39,8 @@ export default function EditProfilePage() {
   });
 
   const onSubmit = async (values: FormValues) => {
-    try {
-      await updateUser({ name: values.name });
-      navigate("/profile");
-    } catch (error) {
-      console.error("Failed to update profile:", error);
-      form.setError("root", {
-        message: "Failed to update profile. Please try again.",
-      });
-    }
+    await updateUser({ name: values.name });
+    navigate("/profile");
   };
 
   return (

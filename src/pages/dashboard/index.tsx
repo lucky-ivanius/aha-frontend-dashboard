@@ -1,5 +1,6 @@
 import { apiClient } from "@/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Pagination } from "@/components/ui/pagination";
 import {
   Table,
   TableBody,
@@ -8,35 +9,59 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAuth } from "@/context/auth-context";
 import { DashboardLayout } from "@/layouts/dashboard-layout";
 import { UserList, UserStats } from "@/types/user";
 import { useEffect, useState } from "react";
 
 export default function Dashboard() {
+  const { signOut } = useAuth();
   const [users, setUsers] = useState<UserList[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+
+  const fetchUsers = async (page: number) => {
+    setLoading(true);
+
+    const usersResponse = await apiClient.getAllUsers(page, pageSize);
+
+    if (usersResponse.status === 401) return signOut();
+
+    setUsers(usersResponse.data.data);
+    setTotalUsers(usersResponse.data.total);
+    setLoading(false);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [usersResponse, statsResponse] = await Promise.all([
-          apiClient.getAllUsers(),
-          apiClient.getUserStats(),
-        ]);
+        // Fetch stats once
+        const statsResponse = await apiClient.getUserStats();
+        if (statsResponse.status === 401) return signOut();
 
-        setUsers(usersResponse.data);
         setStats(statsResponse.data);
+
+        // Fetch users with pagination
+        await fetchUsers(currentPage);
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    fetchUsers(currentPage);
+  }, [currentPage, pageSize]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString("en-US", {
@@ -46,7 +71,9 @@ export default function Dashboard() {
     });
   };
 
-  if (loading) {
+  const totalPages = Math.ceil(totalUsers / pageSize);
+
+  if (loading && !users.length) {
     return (
       <DashboardLayout>
         <div className="flex h-64 items-center justify-center">
@@ -88,7 +115,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {stats?.average7dActiveUsers.toFixed(2) || 0}
+              {stats?.average7dActiveUsers?.toFixed(2) || 0}
             </div>
           </CardContent>
         </Card>
@@ -106,9 +133,15 @@ export default function Dashboard() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.length === 0 ? (
+            {loading ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center">
+                <TableCell colSpan={4} className="text-center py-8">
+                  Loading users...
+                </TableCell>
+              </TableRow>
+            ) : users.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-8">
                   No users found
                 </TableCell>
               </TableRow>
@@ -128,6 +161,23 @@ export default function Dashboard() {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
+
+      {/* User count summary */}
+      <div className="mt-2 text-sm text-gray-500">
+        Showing {users.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} to{" "}
+        {Math.min(currentPage * pageSize, totalUsers)} of {totalUsers} users
       </div>
     </DashboardLayout>
   );

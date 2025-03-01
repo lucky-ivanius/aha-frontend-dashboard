@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(sessionName, signInResponse.data.sessionToken);
 
     const currentUserResponse = await apiClient.getCurrentUser();
-    if (!currentUserResponse.ok) {
+    if (currentUserResponse.status === 401) {
       setUser(null);
       setLoading(false);
       return;
@@ -59,10 +59,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const currentUserResponse = await apiClient.getCurrentUser();
-      if (!currentUserResponse.ok) {
+      if (currentUserResponse.status === 401) {
+        localStorage.removeItem(sessionName);
+        await apiClient.signOut();
         setUser(null);
         setLoading(false);
-        return;
+        return clerkSignOut({ redirectUrl: "/auth/sign-in" });
       }
 
       setUser(currentUserResponse.data);
@@ -70,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     checkAuth();
-  }, []);
+  }, [clerkSignOut]);
 
   const getSessionId = () => {
     return localStorage.getItem(sessionName);
@@ -88,15 +90,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUser = async (data: { name: string }) => {
-    try {
-      const response = await apiClient.updateCurrentUser(data);
-      if (user && response.ok) {
-        setUser({ ...user, ...data });
-      }
-    } catch (error) {
-      console.error("Failed to update user:", error);
-      throw error;
-    }
+    const response = await apiClient.updateCurrentUser(data);
+    if (response.status === 401) return signOut();
+    if (user) setUser({ ...user, ...data });
   };
 
   return (
