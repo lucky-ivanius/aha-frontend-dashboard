@@ -92,26 +92,28 @@ export class ApiClient {
     });
   }
 
-  async getAllUsers(): Promise<
-    ApiResponse<
-      Array<{
+  async getAllUsers(page = 1, limit = 10): Promise<
+    ApiResponse<{
+      data: Array<{
         id: string;
         name: string;
         registrationDate: number;
         totalLoginCount: number;
         lastActiveTimestamp: number | null;
-      }>
-    >
+      }>;
+      total: number;
+    }>
   > {
-    return this.request<
-      Array<{
+    return this.request<{
+      data: Array<{
         id: string;
         name: string;
         registrationDate: number;
         totalLoginCount: number;
         lastActiveTimestamp: number | null;
-      }>
-    >("/users");
+      }>;
+      total: number;
+    }>(`/users?page=${page}&limit=${limit}`);
   }
 
   async getUserStats(): Promise<

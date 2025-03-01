@@ -12,6 +12,11 @@ export interface UserList {
   lastActiveTimestamp: number | null;
 }
 
+export interface UserPagination {
+  data: UserList[];
+  total: number;
+}
+
 export interface UserStats {
   userSignUp: number;
   todaysActiveSession: number;
