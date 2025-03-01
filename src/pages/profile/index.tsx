@@ -6,6 +6,7 @@ import { DashboardLayout } from "@/layouts/dashboard-layout";
 import { PasswordStatus, Session } from "@/types/user";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { formatDistanceToNow, isAfter, subDays, format } from "date-fns";
 
 export default function ProfilePage() {
   const { user, getSessionId, signOut } = useAuth();
@@ -44,13 +45,14 @@ export default function ProfilePage() {
   };
 
   const formatDateTime = (dateString: number) => {
-    return new Date(dateString).toLocaleString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const date = new Date(dateString);
+    const sevenDaysAgo = subDays(new Date(), 7);
+
+    if (isAfter(date, sevenDaysAgo)) {
+      return formatDistanceToNow(date, { addSuffix: true });
+    }
+
+    return format(date, "MMM d, yyyy 'at' h:mm aa");
   };
 
   const parseUserAgent = (userAgent: string) => {
@@ -171,47 +173,49 @@ export default function ProfilePage() {
           {currentSession && (
             <div className="mb-6">
               <h3 className="mb-2 font-semibold">Current Session</h3>
-              <Card className="border-green-200 bg-green-50">
-                <CardContent className="pt-6">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <p className="text-3xl">
-                          {parseUserAgent(currentSession.userAgent).icon}
-                        </p>
-                        <div>
-                          <p className="font-medium">
-                            {parseUserAgent(currentSession.userAgent).device}
+              <div className="grid gap-4 md:grid-cols-2">
+                <Card className="border-green-200 bg-green-50">
+                  <CardContent className="pt-6">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <p className="text-3xl">
+                            {parseUserAgent(currentSession.userAgent).icon}
                           </p>
-                          <p className="text-xs text-gray-500">
-                            {parseUserAgent(currentSession.userAgent).browser}
-                          </p>
+                          <div>
+                            <p className="font-medium">
+                              {parseUserAgent(currentSession.userAgent).device}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {parseUserAgent(currentSession.userAgent).browser}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-500">IP Address</p>
-                      <p>{currentSession.ipAddress}</p>
-                    </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-500">IP Address</p>
+                        <p>{currentSession.ipAddress}</p>
+                      </div>
 
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-500">Created</p>
-                      <p>{formatDateTime(currentSession.loginDate)}</p>
-                    </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-500">Created</p>
+                        <p>{formatDateTime(currentSession.loginDate)}</p>
+                      </div>
 
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-500">Last Active</p>
-                      <p>{formatDateTime(currentSession.lastActiveAt)}</p>
-                    </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-500">Last Active</p>
+                        <p>{formatDateTime(currentSession.lastActiveAt)}</p>
+                      </div>
 
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-500">Expires</p>
-                      <p>{formatDateTime(currentSession.expiresAt)}</p>
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-500">Expires</p>
+                        <p>{formatDateTime(currentSession.expiresAt)}</p>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           )}
 
